@@ -1,7 +1,14 @@
 from sqlalchemy import ForeignKey, Column, Integer, String, MetaData
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import ipdb
+
+engine = create_engine('sqlite:///freebies.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 
 convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -26,6 +33,22 @@ class Company(Base):
     def __repr__(self):
         return f'<Company {self.name}>'
     
+    def give_freebie(self, dev, item_name, value):
+        freebie = Freebie(item_name,  value)
+        freebie.dev = dev
+        freebie.company = self
+        
+    @classmethod
+    def oldest_company(cls):
+        return session.query(cls).order_by(cls.founding_year).first()
+    # the code below was my best try - I think this has something to do with
+    # fine tuning the query object before execution VS grabbing all the records
+    # and then doing iteration...
+        # companies = session.query(cls)
+        # comp = min(companies, key=lambda x: x["founding_year"])
+        # return comp
+    
+Company.oldest_company()
 
 class Dev(Base):
     __tablename__ = 'devs'
@@ -56,7 +79,10 @@ class Freebie(Base):
     dev = relationship('Dev', back_populates='freebies')
     
     def __repr__(self):
-        return f'<Freebie {self.name}>'
+        return f'<Freebie {self.item_name}>'
     
+    def print_details(self):
+        return f'{self.dev.name} owns a {self.item_name} from {self.company.name}'
     
+    # {dev name} owns a {freebie item_name} from {company name}
     
