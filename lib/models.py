@@ -48,7 +48,7 @@ class Company(Base):
         # comp = min(companies, key=lambda x: x["founding_year"])
         # return comp
     
-Company.oldest_company()
+
 
 class Dev(Base):
     __tablename__ = 'devs'
@@ -63,6 +63,19 @@ class Dev(Base):
 
     def __repr__(self):
         return f'<Dev {self.name}>'
+    
+    def received_one(self, item_name):
+        dev_freebie = session.query(Freebie).filter(Freebie.dev_id == self.id, Freebie.item_name == item_name).all()
+        if dev_freebie:
+            return True
+        else:
+            return False
+        
+    def give_away(self, dev, freebie):
+        if self.id == freebie.dev_id:
+            freebie.dev_id = dev.id
+    
+    
 
 
 class Freebie(Base):
@@ -84,5 +97,5 @@ class Freebie(Base):
     def print_details(self):
         return f'{self.dev.name} owns a {self.item_name} from {self.company.name}'
     
-    # {dev name} owns a {freebie item_name} from {company name}
+    
     
